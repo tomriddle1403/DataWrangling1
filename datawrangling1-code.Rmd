@@ -1,0 +1,138 @@
+---
+title: "DataWrangling1-RefineShop"
+author: "Tom"
+date: "January 15, 2017"
+output: html_document
+---
+ 
+
+#0: Load the data in RStudio
+Save the data set as a CSV file called refine_original.csv and load it in RStudio into a data frame.
+
+#1: Clean up brand names
+Clean up the 'company' column, so all of the misspellings of the brand names are standardized. For example, you can transform the values in the column to be: philips, akzo, van houten and unilever (all lowercase).
+
+#2: Separate product code and number
+Separate the product code and product number into separate columns i.e. add two new columns called product_code and product_number, containing the product code and number respectively
+
+#3: Add product categories
+You learn that the product codes actually represent the following product categories:
+p = Smartphone
+v = TV
+x = Laptop
+q = Tablet
+In order to make the data more readable, add a column with the product category for each record.
+
+#4: Add full address for geocoding
+You'd like to view the customer information on a map. In order to do that, the addresses need to be in a form that can be easily geocoded. Create a new column full_address that concatenates the three address fields (address, city, country), separated by commas.
+ 
+#5: Create dummy variables for company and product category
+Both the company name and product category are categorical variables i.e. they take only a fixed set of values. In order to use them in further analysis you need to create dummy variables. Create dummy binary variables for each of them with the prefix company_ and product_ i.e.
+Add four binary (1 or 0) columns for company: company_philips, company_akzo, company_van_houten and company_unilever
+Add four binary (1 or 0) columns for product category: product_smartphone, product_tv, product_laptop and product_tablet
+
+#Read data
+#import data from file refine_original.xlsx
+#d <- data
+```{r, include=FALSE}
+library(readxl)
+path <- "C:/Users/Tom/Desktop/R-Programming/Data/refine_original.xlsx"
+d <- read_excel(path)
+```
+
+#Refine company name with no spacing and uppercase all letter
+```{r}
+library(dplyr)
+#select name, uppercase all, remove space
+
+remove_space <- function(t) {gsub(pattern =" ", t, replace = "")}
+
+#correct company name
+#philips, akzo, van houton, unilever
+correct_name <- function(name, pattern, replaced_name) {
+  hasPattern <- grepl(pattern, name);
+  name[hasPattern] <- replaced_name
+  name
+}
+
+d <- d %>% mutate(company = remove_space(company) %>% tolower)
+
+name_patterns = c("phi", "akz", "van", "uni")
+replaced_names = c("philips", "akzo", "van houten", "unilever") 
+for(i in 1:length(name_patterns)) {
+  d<-d %>% mutate(company = correct_name(name = company,
+                                         pattern = name_patterns[i], replaced_name = replaced_names[i]))
+}
+
+```
+
+```{r}
+#2.Separate product code and number
+
+
+#change name of column product code/number to product_code_number
+colnames(d)[2] <- "product_code_number"
+
+#split code and number in product_code_number
+#"[[" is an extract operator, since strsplit return a list
+#...("[[",2) return the second element in a list
+f<-d[2] %>% sapply(strsplit, split = "-", "[[", 2)
+#...f is a list of list character
+
+#get the first element in each sublist
+p_code <- f %>% sapply("[[", 1)
+
+#get the second element in each sublist
+p_number <- f %>% sapply("[[", 2)
+
+#add columns: product_code, product_number
+d<-d %>% mutate(product_code = p_code, product_number = p_number )
+```
+
+```{r}
+#3. Add product category
+categories<-c(p = "Smartphone", v = "TV", x = "Laptop", q = "Tablet")
+d <- d %>% mutate(category = categories[product_code])
+
+```
+
+```{r}
+#4. Add full address
+#use paste to concatenate strings
+d <- d %>% mutate(full_address = paste(address, city, country, sep = ","))
+
+```
+
+```{r, echo=TRUE}
+#5. Create dummy variables
+#company_philips, company_akzo, company_van_houten and company_unilever
+
+#return numeric value for TRUE FALSE
+mark <- function(x, pattern) {
+  logics <- (x == pattern)
+  sapply(logics, as.numeric)
+}
+
+companies <- c("philips", "akzo", "van houten", "unilever")
+
+for(name in companies) {
+  s <- paste("company", name, sep = "_")
+ 
+  d[[s]] <- mark(d$company, name)
+}
+
+#Change column name "company_van houten" to "company_van_houten"
+colnames(d)[names(d) == "company_van houten"] <- "company_van_houten"
+
+#product category: smartphone, tv, laptop, tablet
+categories <- factor(d$category) %>% levels
+
+for(c in categories) {
+  s <- paste("product", tolower(c), sep="_")
+  d[[s]] <- mark(d$category, c)
+}
+
+View(d)
+```
+
+
