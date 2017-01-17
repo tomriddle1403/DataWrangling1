@@ -36,7 +36,7 @@ Add four binary (1 or 0) columns for product category: product_smartphone, produ
 #d <- data
 ```{r, include=FALSE}
 library(readxl)
-path <- "C:/Users/Tom/Desktop/R-Programming/Data/refine_original.xlsx"
+path <- "..."
 d <- read_excel(path)
 ```
 
