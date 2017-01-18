@@ -37,7 +37,7 @@ Add four binary (1 or 0) columns for product category: product_smartphone, produ
 ```{r, include=FALSE}
 library(readxl)
 
-d <- read.csv(file = "refine_original.csv", as.is = "Product.code...number")
+d <- read.csv(file = "refine_original.csv", stringsAsFactors = FALSE)
 ```
 
 #Refine company name with no spacing and uppercase all letter
@@ -77,7 +77,7 @@ colnames(d)[2] <- "product_code_number"
 #..."[[" is an extract operator, since strsplit return a list
 #...("[[",2) return the second element in a list
 
-f<-d$product_code_number %>% strsplit(split = "-") %>% sapply("[[", 2)
+f<-d$product_code_number %>% strsplit(split = "-") 
 #...f is a list of list character
 
 #get the first element in each sublist
@@ -108,12 +108,6 @@ d <- d %>% mutate(full_address = paste(address, city, country, sep = ","))
 #5. Create dummy variables
 #company_philips, company_akzo, company_van_houten and company_unilever
 
-#return numeric value for TRUE FALSE
-mark <- function(x, pattern) {
-  logics <- (x == pattern)
-  sapply(logics, as.numeric)
-}
-
 companies <- c("philips", "akzo", "van houten", "unilever")
 
 for(name in companies) {
@@ -122,18 +116,29 @@ for(name in companies) {
   #d[[s]] <- mark(d$company, name)
 }
 
-#Change column name "company_van houten" to "company_van_houten"
+#update names
 colnames(d)[names(d) == "company_van houten"] <- "company_van_houten"
 
-#product category: smartphone, tv, laptop, tablet
+#get product category
 categories <- factor(d$category) %>% levels
 
 for(c in categories) {
   s <- paste("product", tolower(c), sep="_")
-  d[[s]] <- mark(d$category, c)
+  d[[s]] <- as.numeric(d$category == c)
 }
 
-View(d)
+
 ```
+
+```{r}
+#Test if code is modified
+clean <- read.csv(file = "refine_clean.csv", , stringsAsFactors = FALSE)
+clean$X <- NULL
+str(clean)
+str(d)
+test <- (clean == d) %>% factor() %>% levels()
+test == TRUE
+```
+
 
 
