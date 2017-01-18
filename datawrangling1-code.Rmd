@@ -36,8 +36,8 @@ Add four binary (1 or 0) columns for product category: product_smartphone, produ
 #d <- data
 ```{r, include=FALSE}
 library(readxl)
-path <- "..."
-d <- read_excel(path)
+
+d <- read.csv("refine_original.csv")
 ```
 
 #Refine company name with no spacing and uppercase all letter
@@ -117,8 +117,8 @@ companies <- c("philips", "akzo", "van houten", "unilever")
 
 for(name in companies) {
   s <- paste("company", name, sep = "_")
- 
-  d[[s]] <- mark(d$company, name)
+  d[[s]] <- as.numeric(d$company == name)
+  #d[[s]] <- mark(d$company, name)
 }
 
 #Change column name "company_van houten" to "company_van_houten"
