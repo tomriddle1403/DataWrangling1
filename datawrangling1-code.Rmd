@@ -37,7 +37,7 @@ Add four binary (1 or 0) columns for product category: product_smartphone, produ
 ```{r, include=FALSE}
 library(readxl)
 
-d <- read.csv("refine_original.csv")
+d <- read.csv(file = "refine_original.csv", as.is = "Product.code...number")
 ```
 
 #Refine company name with no spacing and uppercase all letter
@@ -74,9 +74,10 @@ for(i in 1:length(name_patterns)) {
 colnames(d)[2] <- "product_code_number"
 
 #split code and number in product_code_number
-#"[[" is an extract operator, since strsplit return a list
+#..."[[" is an extract operator, since strsplit return a list
 #...("[[",2) return the second element in a list
-f<-d[2] %>% sapply(strsplit, split = "-", "[[", 2)
+
+f<-d$product_code_number %>% strsplit(split = "-") %>% sapply("[[", 2)
 #...f is a list of list character
 
 #get the first element in each sublist
